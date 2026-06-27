@@ -238,6 +238,15 @@ class FrankaConfig(HardwareConfig):
     disable_validate: bool = False
     """Whether to disable validation of robot IP connectivity and camera serials."""
 
+    controller_backend: Optional[str] = None
+    """Low-level controller backend for this arm: ``"ros"`` (default,
+    serl_franka_controllers) or ``"franka_suite"`` (FR3 over the franka_suite
+    HTTP server). When ``None`` the env config's ``controller_backend`` wins."""
+
+    franka_server_url: Optional[str] = None
+    """franka_suite Flask server URL when ``controller_backend == "franka_suite"``.
+    Defaults to the robot host's ``localhost:5000`` when left unset."""
+
     def __post_init__(self):
         """Post-initialization to validate the configuration."""
         assert isinstance(self.node_rank, int), (

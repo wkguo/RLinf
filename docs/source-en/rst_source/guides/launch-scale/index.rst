@@ -18,6 +18,8 @@ connect RLinf to physical hardware.
      - Split inference and training across cloud and edge.
    * - :doc:`Real-World Robots <../realworld_robot>`
      - Run RL on physical robot hardware.
+   * - :doc:`FR3 via franka_suite <../realworld_fr3_franka_suite>`
+     - Drive a real FR3 over the ROS-free franka_suite HTTP backend.
 
 .. toctree::
    :hidden:
@@ -26,3 +28,4 @@ connect RLinf to physical hardware.
    Heterogeneous Clusters <../hetero>
    Cloud-Edge Collaboration <../cloud_edge>
    Real-World Robots <../realworld_robot>
+   FR3 via franka_suite <../realworld_fr3_franka_suite>

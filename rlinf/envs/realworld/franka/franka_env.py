@@ -117,6 +117,15 @@ class FrankaRobotConfig:
     # Max per-step change for hand joints (set to inf to disable).
     hand_max_delta_per_step: float = float("inf")
 
+    # -- Controller backend ----------------------------------------------
+    # Low-level controller driving the single arm:
+    #   "ros"          -> FrankaController (serl_franka_controllers over ROS)
+    #   "franka_suite" -> FrankaSuiteController (franka_suite HTTP server, FR3)
+    controller_backend: str = "ros"
+    # franka_suite Flask server URL (controller_backend == "franka_suite").
+    # Defaults to the robot host's localhost:5000 when left unset.
+    franka_server_url: Optional[str] = None
+
     def __post_init__(self):
         """Convert list fields from YAML/Hydra to numpy arrays."""
         if self.camera_names is not None:
@@ -247,6 +256,13 @@ class FrankaEnv(gym.Env):
             self.config.gripper_connection = getattr(
                 self.hardware_info.config, "gripper_connection", None
             )
+        if self.config.franka_server_url is None:
+            self.config.franka_server_url = getattr(
+                self.hardware_info.config, "franka_server_url", None
+            )
+        hw_backend = getattr(self.hardware_info.config, "controller_backend", None)
+        if hw_backend is not None and self.config.controller_backend == "ros":
+            self.config.controller_backend = hw_backend
         self.config.end_effector_type = normalize_end_effector_type(
             self.config.end_effector_type,
             self.config.gripper_type,
@@ -260,15 +276,27 @@ class FrankaEnv(gym.Env):
         )
         if controller_node_rank is None:
             controller_node_rank = self.node_rank
-        self._controller = FrankaController.launch_controller(
-            robot_ip=self.config.robot_ip,
-            env_idx=self.env_idx,
-            node_rank=controller_node_rank,
-            worker_rank=self.env_worker_rank,
-            end_effector_type=self.config.end_effector_type,
-            end_effector_config=self.config.end_effector_config,
-            gripper_connection=self.config.gripper_connection,
-        )
+
+        if self.config.controller_backend == "franka_suite":
+            from .franka_suite_controller import FrankaSuiteController
+
+            self._controller = FrankaSuiteController.launch_controller(
+                robot_ip=self.config.robot_ip,
+                env_idx=self.env_idx,
+                node_rank=controller_node_rank,
+                worker_rank=self.env_worker_rank,
+                server_url=self.config.franka_server_url,
+            )
+        else:
+            self._controller = FrankaController.launch_controller(
+                robot_ip=self.config.robot_ip,
+                env_idx=self.env_idx,
+                node_rank=controller_node_rank,
+                worker_rank=self.env_worker_rank,
+                end_effector_type=self.config.end_effector_type,
+                end_effector_config=self.config.end_effector_config,
+                gripper_connection=self.config.gripper_connection,
+            )
 
     def _setup_reward_worker(self):
         if not self.config.use_reward_model:
