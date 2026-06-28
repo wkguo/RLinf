@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from rlinf.algorithms.rewards.code import CodeRewardOffline
-from rlinf.algorithms.rewards.math import MathReward
-from rlinf.algorithms.rewards.rstar2 import Rstar2Reward
-from rlinf.algorithms.rewards.searchr1 import SearchR1Reward
-from rlinf.algorithms.rewards.vqa import VQAReward
+# The rule-based reward classes (math / code / rstar2 / searchr1 / vqa) belong
+# to the LLM reasoning/agent subsystem, which was removed on the franka branch
+# along with its heavy verifier dependencies. The registry API is kept so the
+# (now dormant) rule-based RewardWorker still imports; the embodied
+# EmbodiedRewardWorker does not use it. Re-register classes here to restore a
+# rule-based reward.
+
+reward_registry = {}
 
 
 def register_reward(name: str, reward_class: type):
@@ -25,14 +28,8 @@ def register_reward(name: str, reward_class: type):
 
 
 def get_rule_based_reward_class(name: str):
-    assert name in reward_registry, f"Reward {name} not found"
+    assert name in reward_registry, (
+        f"Reward {name} not found. Rule-based rewards were removed on the "
+        "franka branch; only embodied reward models are supported."
+    )
     return reward_registry[name]
-
-
-reward_registry = {}
-
-register_reward("math", MathReward)
-register_reward("vqa", VQAReward)
-register_reward("code_offline", CodeRewardOffline)
-register_reward("searchr1", SearchR1Reward)
-register_reward("rstar2", Rstar2Reward)
