@@ -994,53 +994,9 @@ def validate_embodied_cfg(cfg):
         cfg.runner.overlap_env_bootstrap = bool(
             cfg.runner.get("overlap_env_bootstrap", False)
         ) and not cfg.env.get("train", {}).get("enable_offload", False)
-        train_env_type = (
-            SupportedEnvType(cfg.env.train.env_type)
-            if cfg.env.get("train", None) is not None
-            else None
-        )
-        eval_env_type = (
-            SupportedEnvType(cfg.env.eval.env_type)
-            if cfg.env.get("eval", None) is not None
-            else None
-        )
-        if (
-            train_env_type == SupportedEnvType.MANISKILL
-            or eval_env_type == SupportedEnvType.MANISKILL
-        ):
-
-            def get_robot_control_mode(robot: str):
-                if robot == "panda-qpos":
-                    return "pd_joint_delta_pos"
-                elif robot == "panda-ee-dpos":
-                    return "pd_ee_delta_pos"
-                elif robot == "panda-ee-target-dpos":  # for GSEnv
-                    return "pd_ee_target_delta_pose"
-                elif "google_robot_static" in robot:
-                    return "arm_pd_ee_delta_pose_align_interpolate_by_planner_gripper_pd_joint_target_delta_pos_interpolate_by_planner"
-                elif "widowx" in robot:
-                    return "arm_pd_ee_target_delta_pose_align2_gripper_pd_joint_pos"
-                elif "panda" in robot:
-                    return "pd_ee_body_target_delta_pose_real_root_frame"
-                else:
-                    raise NotImplementedError(f"Robot {robot} not supported")
-
-            if cfg.env.get("train", None) is not None:
-                cfg.env.train.init_params.control_mode = get_robot_control_mode(
-                    model_cfg.policy_setup
-                )
-            if cfg.env.get("eval", None) is not None:
-                cfg.env.eval.init_params.control_mode = get_robot_control_mode(
-                    model_cfg.policy_setup
-                )
-        elif (
-            train_env_type == SupportedEnvType.BEHAVIOR
-            or eval_env_type == SupportedEnvType.BEHAVIOR
-        ):
-            if cfg.env.get("train", None) is not None:
-                assert cfg.env.train.base_config_name == "r1pro_behavior", (
-                    f"Only r1pro_behavior is supported for omnigibson, got {cfg.env.train.base_config_name}"
-                )
+        # Env-type-specific validation for sim benchmarks (ManiSkill control
+        # mode, Behavior base config, etc.) was removed with those envs on the
+        # franka branch; the realworld/frankasim path needs none of it.
     return cfg
 
 
