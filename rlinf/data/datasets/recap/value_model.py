@@ -65,6 +65,15 @@ _REPACK_KEYS = {
         "actions": "action",
         "prompt": "prompt",
     },
+    "industrial_arm": {
+        # Pine Industrial_Arm 3-cam (value model uses view1 as base + hand as wrist);
+        # state is 13-D (pose+force/torque), padded to action_dim downstream.
+        "observation/image": "observation.images.view1",
+        "observation/wrist_image": "observation.images.hand",
+        "observation/state": "observation.state",
+        "actions": "action",
+        "prompt": "prompt",
+    },
     "franka": {
         "observation/image": "image",
         "observation/state": "state",
@@ -314,7 +323,7 @@ class ValueDataset(Dataset):
             )
         transforms_list.append(_openpi_transforms.RepackTransform(repack_keys))
 
-        if robot in ("libero", "libero_v2"):
+        if robot in ("libero", "libero_v2", "industrial_arm"):
             transforms_list.append(
                 libero_policy.LiberoInputs(model_type=model_type_enum)
             )

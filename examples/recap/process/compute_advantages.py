@@ -210,6 +210,14 @@ KEY_MAPPINGS = {
         "state": "observation/state",
         "task": "prompt",
     },
+    "industrial_arm": {
+        # Pine Industrial_Arm 3-cam: view1 as base, hand as wrist (matches the
+        # value model's industrial_arm repack in recap/value_model.py).
+        "observation.images.view1": "observation/image",
+        "observation.images.hand": "observation/wrist_image",
+        "observation.state": "observation/state",
+        "task": "prompt",
+    },
     "droid": {
         "observation.exterior_image_1_left": "observation/exterior_image_1_left",
         "observation.wrist_image_left": "observation/wrist_image_left",
