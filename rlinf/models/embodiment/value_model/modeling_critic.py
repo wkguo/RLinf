@@ -531,6 +531,15 @@ class ValueCriticModel(nn.Module):
         )
         suffix_embs, suffix_pad_masks, suffix_ar_masks = self.embed_suffix(batch_size)
 
+        # Match the expert dtype before the expert forward. The [CLS] embedding lives
+        # in value_head, which is not touched by ValueExpert._apply_precision, so it
+        # can stay fp32 and clash with the bf16 expert weights. Mirror the cast done
+        # in the training path (_forward_expert).
+        model_dtype = self._get_model_dtype()
+        if model_dtype == torch.bfloat16:
+            prefix_embs = prefix_embs.to(torch.bfloat16)
+            suffix_embs = suffix_embs.to(torch.bfloat16)
+
         # Prefix is fully bidirectional, so attention = pad_mask outer product.
         prefix_attn = prefix_pad_masks[:, None, :] * prefix_pad_masks[:, :, None]
         prefix_attn_4d = self._prepare_attention_masks_4d(prefix_attn)
