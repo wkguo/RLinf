@@ -162,7 +162,7 @@ def build_input_transforms(
 
     input_transforms = []
 
-    if env_type == "libero":
+    if env_type in ("libero", "industrial_arm"):
         input_transforms.append(_openpi_transforms.InjectDefaultPrompt(default_prompt))
         input_transforms.append(libero_policy.LiberoInputs(model_type=model_type_enum))
 
